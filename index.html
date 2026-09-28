@@ -303,7 +303,7 @@ footer button{background:none;border:0;color:var(--sub);font-size:12px;text-deco
 </div>
 
 <!-- 하단 버튼 -->
-<div class="cta hidden" id="cta"><div class="cta-in"><button class="btn full" id="ctaBtn">레슨 신청하기</button></div></div>
+<div class="cta hidden" id="cta"><div class="cta-in"><button class="btn full" id="ctaBtn">레슨 신청하기</button><button class="btn soft" id="ctaCancel" style="flex:none;white-space:nowrap">신청 취소</button></div></div>
 
 <!-- 바텀시트: 신청/취소 -->
 <div class="dim" id="dim"></div>
@@ -553,11 +553,11 @@ function render(){
 
   // 하단 버튼
   const btn=$('ctaBtn'); $('cta').classList.remove('hidden');
+  $('ctaCancel').classList.toggle('hidden', st==='before');
   if(st==='before'){ btn.disabled=true; btn.textContent=`${fmtDT(cfg.openAt)}부터 신청 가능`; }
   else if(st==='after'){ btn.disabled=true; btn.textContent='신청이 마감됐어요'; }
-  else if(full && !cfg.waitlist){ btn.disabled=false; btn.textContent='정원 마감 · 신청 취소하기'; btn.dataset.mode='cancel'; return; }
+  else if(full && !cfg.waitlist){ btn.disabled=true; btn.textContent='정원이 마감됐어요'; }
   else { btn.disabled=false; btn.textContent= full ? '대기 신청하기' : `${mLabel(cfg.month)} 레슨 신청하기`; }
-  btn.dataset.mode='apply';
 }
 
 /* 바텀시트 */
@@ -570,15 +570,21 @@ function sheetTab(t){
   msg($('sMsg'),''); msg($('cMsg'),'');
 }
 $('sheetSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) sheetTab(b.dataset.t); });
-$('ctaBtn').onclick=()=>{
+function openApplySheet(tab){
   const cfg=curData.config, cap=Number(cfg.capacity)||0, full=cap>0&&curData.count.total>=cap;
-  const canApply = !(full && !cfg.waitlist);
+  const canApply = periodState(cfg)==='open' && !(full && !cfg.waitlist);
   $('sheetSeg').querySelector('[data-t=apply]').classList.toggle('hidden', !canApply);
   $('sTitle').textContent = full ? `${mLabel(cfg.month)} 레슨 대기 신청` : `${mLabel(cfg.month)} 레슨 신청`;
   $('sDesc').textContent = `${(cfg.days||[]).length}회 · ${cfg.time||''}${cfg.place?' · '+cfg.place:''}`;
   $('applyBtn').textContent = full ? '대기 신청하기' : '신청하기';
-  sheetTab($('ctaBtn').dataset.mode==='cancel' ? 'cancel' : 'apply');
-  openSheet('sheet'); setTimeout(()=>($('ctaBtn').dataset.mode==='cancel'?$('cName'):$('fName')).focus(),250);
+  if(!canApply) tab='cancel';
+  sheetTab(tab); openSheet('sheet');
+  setTimeout(()=>(tab==='cancel'?$('cName'):$('fName')).focus(),250);
+}
+$('ctaBtn').onclick=()=>openApplySheet('apply');
+$('ctaCancel').onclick=()=>{
+  if(periodState(curData.config)==='after') return toast('신청 기간이 끝나 취소할 수 없어요. 관리자에게 문의해 주세요.');
+  openApplySheet('cancel');
 };
 $('applyBtn').onclick=async ()=>{
   const name=$('fName').value.trim(), phone=$('fPhone').value.trim(), pin=$('fPin').value.trim();
