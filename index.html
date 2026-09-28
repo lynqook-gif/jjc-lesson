@@ -157,8 +157,9 @@ button,input,textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
 
 footer{text-align:center;color:var(--mute);font-size:12px;padding:26px 18px 10px;line-height:1.7}
 footer button{background:none;border:0;color:var(--sub);font-size:12px;text-decoration:underline;cursor:pointer;padding:0}
-.loading{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:40;background:rgba(255,255,255,.5)}
+.loading{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:40;background:rgba(244,246,250,.6)}
 .loading.show{display:flex}
+.lbox{background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:20px 22px;display:flex;flex-direction:column;align-items:center;gap:12px;font-size:14px;font-weight:700;color:var(--navy);max-width:260px;text-align:center}
 .spin{width:34px;height:34px;border:3.5px solid var(--navy-t2);border-top-color:var(--navy);border-radius:50%;animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 .hidden{display:none!important}
@@ -252,8 +253,8 @@ footer button{background:none;border:0;color:var(--sub);font-size:12px;text-deco
         </div>
         <div class="sec">
           <div class="card">
-            <div class="fld"><label>레슨 시간</label><input id="aTime" placeholder="예: 19:00 ~ 21:00"></div>
-            <div class="fld"><label>장소</label><input id="aPlace" placeholder="예: 정읍국민체육센터"></div>
+            <div class="fld"><label>레슨 시간</label><input id="aTime" placeholder="20:00~22:00"></div>
+            <div class="fld"><label>장소</label><input id="aPlace" placeholder="정읍중학교"></div>
             <div class="g2">
               <div class="fld"><label>정원 (0 = 제한 없음)</label><input id="aCap" type="number" min="0" inputmode="numeric"></div>
               <div class="fld"><label>레슨비</label><input id="aFee" placeholder="예: 월 5만원"></div>
@@ -297,8 +298,7 @@ footer button{background:none;border:0;color:var(--sub);font-size:12px;text-deco
   </div>
 
   <footer>
-    <button id="adminOpen">관리자</button><br>
-    제작자: 정주고등학교 박지은 / 문의: ican6363@naver.com
+    <button id="adminOpen">관리자</button>
   </footer>
 </div>
 
@@ -340,13 +340,15 @@ footer button{background:none;border:0;color:var(--sub);font-size:12px;text-deco
 </div></div>
 
 <div class="toast" id="toast"></div>
-<div class="loading" id="loading"><div class="spin"></div></div>
+<div class="loading" id="loading"><div class="lbox"><div class="spin"></div><div id="loadingText">불러오는 중…</div></div></div>
 
 <script>
 /* ================================================================
    ★ 설정 ★  Apps Script 웹 앱 URL을 따옴표 안에 붙여넣으세요.
    비워두면 이 브라우저에만 저장되는 미리보기 모드로 동작합니다.
    ================================================================ */
+const DEFAULT_PLACE = '정읍중학교';     // 새 달 만들 때 기본 장소
+const DEFAULT_TIME  = '20:00~22:00';   // 새 달 만들 때 기본 시간
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0T6Sevjq4_w0O3eVVGL0Bo6rA1wMVDR0STcFXrEroO074HZvOPNniDjCNxvN6VshqbA/exec';
 
 /* ---------------- 공통 ---------------- */
@@ -376,7 +378,13 @@ function monthDiff(a,b){ const [y1,m1]=a.split('-').map(Number),[y2,m2]=b.split(
 function dday(target){ const ms=kst(target)-new Date(); const d=Math.floor(ms/86400000);
   if(d>=1) return `D-${d}`; const h=Math.floor(ms/3600000); return h>=1?`${h}시간 남음`:`${Math.max(1,Math.floor(ms/60000))}분 남음`; }
 function msg(el, text, ok){ el.innerHTML = text ? `<div class="msg ${ok?'ok':'err'}">${esc(text)}</div>` : ''; }
-function loading(on){ $('loading').classList.toggle('show', on); }
+let loadDepth=0;
+function loading(on, text){
+  loadDepth = Math.max(0, loadDepth + (on?1:-1));
+  if(on) $('loadingText').textContent = text || '불러오는 중…';
+  $('loading').classList.toggle('show', loadDepth>0);
+}
+function loadingText(t){ if(loadDepth>0) $('loadingText').textContent=t; }
 let toastT; function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2600); }
 
 /* ---------------- 미리보기용 저장소 ---------------- */
@@ -412,32 +420,55 @@ function mock(action, p){
       const cap=Number(cfg.capacity)||0, full=cap>0&&active.length>=cap;
       if(full&&!cfg.waitlist) throw new Error('정원이 마감됐어요.');
       db.apps.push({id:Math.random().toString(36).slice(2,12),month:p.month,name,phone:String(p.phone||'').trim(),pin,at:nowStr(),canceledAt:'',reason:''});
-      store.set(db); return {status:full?'대기':'확정',no:active.length+1}; }
+      store.set(db); return {status:full?'대기':'확정',no:active.length+1,data:getMonth(p.month,false)}; }
     case 'cancel': {
       const cfg=db.configs[p.month]; if(!cfg) throw new Error('해당 월의 레슨 정보가 없어요.');
       if(periodState(cfg)!=='open') throw new Error('신청 기간에만 취소할 수 있어요. 관리자에게 문의하세요.');
       const a=db.apps.find(x=>x.month===p.month&&!x.canceledAt&&x.name===String(p.name||'').trim()&&x.pin===String(p.pin||'').trim());
       if(!a) throw new Error('일치하는 신청 내역이 없어요. 이름과 비밀번호를 확인하세요.');
-      a.canceledAt=nowStr(); a.reason='본인취소'; store.set(db); return true; }
+      a.canceledAt=nowStr(); a.reason='본인취소'; store.set(db); return {data:getMonth(p.month,false)}; }
     case 'login': needAdmin(); return true;
     case 'adminMonth': needAdmin(); return getMonth(p.month,true);
-    case 'saveMonth': needAdmin(); db.configs[p.config.month]=p.config; store.set(db); return true;
-    case 'deleteMonth': needAdmin(); delete db.configs[p.month]; store.set(db); return true;
+    case 'saveMonth': needAdmin(); db.configs[p.config.month]=p.config; store.set(db); return {months:mock('months',{}),admin:getMonth(p.config.month,true)};
+    case 'deleteMonth': needAdmin(); delete db.configs[p.month]; store.set(db); return {months:mock('months',{})};
     case 'adminRemove': { needAdmin(); const a=db.apps.find(x=>x.id===p.id&&!x.canceledAt); if(!a) throw new Error('신청 내역을 찾을 수 없어요.');
-      a.canceledAt=nowStr(); a.reason='관리자취소'; store.set(db); return true; }
+      a.canceledAt=nowStr(); a.reason='관리자취소'; store.set(db); return getMonth(a.month,true); }
   }
   throw new Error('알 수 없는 요청이에요.');
 }
 
 /* ---------------- 서버 통신 ---------------- */
+// 같은 요청을 두 번 보내도 결과가 같은 것만 자동 재시도 (신청·취소·삭제는 재시도하지 않음)
+const RETRY_SAFE = ['months','month','login','adminMonth','saveMonth'];
+class NetErr extends Error{}
+async function callOnce(action, params){
+  const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 15000);
+  try{
+    const res = (action==='months'||action==='month')
+      ? await fetch(SCRIPT_URL+'?'+new URLSearchParams({action,...params}), {signal:ctrl.signal})
+      : await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...params}),signal:ctrl.signal});
+    let j; try{ j = await res.json(); }catch(e){ throw new NetErr('bad'); }
+    if(!j.ok) throw new Error(j.error||'오류가 발생했어요.');
+    return j.data;
+  }catch(e){
+    if(e instanceof NetErr || e.name==='AbortError' || e instanceof TypeError) throw new NetErr(e.name==='AbortError'?'timeout':'net');
+    throw e;
+  }finally{ clearTimeout(timer); }
+}
 async function api(action, params={}){
   if(!SCRIPT_URL){ await new Promise(r=>setTimeout(r,120)); return mock(action, JSON.parse(JSON.stringify(params))); }
-  const res = (action==='months'||action==='month')
-    ? await fetch(SCRIPT_URL+'?'+new URLSearchParams({action,...params}))
-    : await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...params})});
-  const j = await res.json();
-  if(!j.ok) throw new Error(j.error||'오류가 발생했어요.');
-  return j.data;
+  try{ return await callOnce(action, params); }
+  catch(e){
+    if(!(e instanceof NetErr)) throw e;
+    if(RETRY_SAFE.includes(action)){
+      loadingText('서버 응답이 늦어 다시 시도하는 중…');
+      try{ return await callOnce(action, params); }
+      catch(e2){ if(!(e2 instanceof NetErr)) throw e2; }
+    }
+    if(action==='apply') throw new Error('서버 응답이 없어요. 신청이 됐을 수도 있으니 신청 현황을 새로고침해서 확인해 주세요.');
+    if(action==='cancel') throw new Error('서버 응답이 없어요. 신청 현황을 새로고침해서 취소됐는지 확인해 주세요.');
+    throw new Error('서버 응답이 없어요. 잠시 후 다시 시도해 주세요.');
+  }
 }
 
 /* ---------------- 달력 ---------------- */
@@ -553,11 +584,11 @@ $('applyBtn').onclick=async ()=>{
   const name=$('fName').value.trim(), phone=$('fPhone').value.trim(), pin=$('fPin').value.trim();
   if(!name) return msg($('sMsg'),'이름을 입력하세요.');
   if(!/^\d{4}$/.test(pin)) return msg($('sMsg'),'취소 비밀번호는 숫자 4자리로 입력하세요.');
-  loading(true); $('applyBtn').disabled=true;
+  loading(true,'신청하는 중…'); $('applyBtn').disabled=true;
   try{
     const r=await api('apply',{month:curMonth,name,phone,pin});
     ['fName','fPhone','fPin'].forEach(i=>$(i).value='');
-    closeSheets(); curData=await api('month',{month:curMonth}); render();
+    closeSheets(); curData=r.data; render();
     toast(r.status==='확정' ? `${name}님, 신청이 완료됐어요!` : `${name}님, 대기로 접수됐어요. 취소자가 생기면 순서대로 확정돼요.`);
   }catch(e){ msg($('sMsg'), e.message); }
   finally{ loading(false); $('applyBtn').disabled=false; }
@@ -566,11 +597,11 @@ $('cancelBtn').onclick=async ()=>{
   const name=$('cName').value.trim(), pin=$('cPin').value.trim();
   if(!name || !/^\d{4}$/.test(pin)) return msg($('cMsg'),'이름과 비밀번호 4자리를 입력하세요.');
   if(!confirm(`${name}님의 ${mLabel(curMonth)} 레슨 신청을 취소할까요?`)) return;
-  loading(true);
+  loading(true,'취소하는 중…');
   try{
-    await api('cancel',{month:curMonth,name,pin});
+    const r=await api('cancel',{month:curMonth,name,pin});
     ['cName','cPin'].forEach(i=>$(i).value='');
-    closeSheets(); curData=await api('month',{month:curMonth}); render(); toast('신청이 취소됐어요.');
+    closeSheets(); curData=r.data; render(); toast('신청이 취소됐어요.');
   }catch(e){ msg($('cMsg'), e.message); }
   finally{ loading(false); }
 };
@@ -581,7 +612,7 @@ let adminPw='', aMonth=null, aCfg=null, aData=null, aIsNew=false;
 $('adminOpen').onclick=()=>{ if(adminPw) return enterAdmin(); msg($('loginMsg'),''); $('loginPw').value=''; openSheet('loginSheet'); setTimeout(()=>$('loginPw').focus(),250); };
 $('loginPw').addEventListener('keydown', e=>{ if(e.key==='Enter') $('loginBtn').click(); });
 $('loginBtn').onclick=async ()=>{
-  const pw=$('loginPw').value; loading(true);
+  const pw=$('loginPw').value; loading(true,'로그인 중…');
   try{ await api('login',{pw}); adminPw=pw; closeSheets(); enterAdmin(); }
   catch(e){ msg($('loginMsg'), e.message); }
   finally{ loading(false); }
@@ -595,14 +626,23 @@ async function enterAdmin(){
   $('newMonth').value=`${y}-${pad(m)}`;
   await refreshAdminMonths(aMonth||curMonth);
 }
+function fillMonthSelect(select){
+  const sel=$('aMonthSel');
+  sel.innerHTML = months.length ? months.slice().reverse().map(m=>`<option value="${m.month}">${mLabelFull(m.month)}</option>`).join('') : '<option value="">등록된 달이 없어요</option>';
+  if(select && months.some(m=>m.month===select)) sel.value=select;
+  return sel.value;
+}
+function showAdminMonth(data){
+  aData=data; aMonth=data.config.month; aIsNew=false;
+  aCfg=JSON.parse(JSON.stringify(data.config)); fillEditor(); renderAdminList();
+  $('aBody').classList.remove('hidden'); msg($('aMsg'),'');
+}
 async function refreshAdminMonths(select){
   loading(true);
   try{
     months=await api('months');
-    const sel=$('aMonthSel');
-    sel.innerHTML = months.length ? months.slice().reverse().map(m=>`<option value="${m.month}">${mLabelFull(m.month)}</option>`).join('') : '<option value="">등록된 달이 없어요</option>';
-    if(select && months.some(m=>m.month===select)) sel.value=select;
-    if(sel.value) await openAdminMonth(sel.value); else $('aBody').classList.add('hidden');
+    const v=fillMonthSelect(select);
+    if(v) await openAdminMonth(v); else $('aBody').classList.add('hidden');
   }catch(e){ toast(e.message); }
   finally{ loading(false); }
 }
@@ -610,7 +650,7 @@ $('aMonthSel').onchange=()=>{ if($('aMonthSel').value) openAdminMonth($('aMonthS
 
 async function openAdminMonth(m){
   aMonth=m; aIsNew=false; loading(true);
-  try{ aData=await api('adminMonth',{month:m,pw:adminPw}); aCfg=JSON.parse(JSON.stringify(aData.config)); fillEditor(); renderAdminList(); $('aBody').classList.remove('hidden'); msg($('aMsg'),''); }
+  try{ showAdminMonth(await api('adminMonth',{month:m,pw:adminPw})); }
   catch(e){ toast(e.message); }
   finally{ loading(false); }
 }
@@ -618,11 +658,11 @@ $('newMonthBtn').onclick=()=>{
   const m=$('newMonth').value; if(!m) return;
   if(months.some(x=>x.month===m)){ $('aMonthSel').value=m; return openAdminMonth(m); }
   const prev=months.filter(x=>x.month<m).slice(-1)[0] || months.slice(-1)[0];
-  aCfg={month:m,days:[],time:'',place:'',capacity:0,waitlist:true,fee:'',openAt:'',closeAt:'',notice:''};
+  aCfg={month:m,days:[],time:DEFAULT_TIME,place:DEFAULT_PLACE,capacity:0,waitlist:true,fee:'',openAt:'',closeAt:'',notice:''};
   if(prev){
     const diff=monthDiff(prev.month,m), wds=[...new Set((prev.days||[]).map(dowOf))];
     for(let d=1; d<=daysIn(m); d++){ const ds=`${m}-${pad(d)}`; if(wds.includes(dowOf(ds))) aCfg.days.push(ds); }
-    Object.assign(aCfg,{time:prev.time||'',place:prev.place||'',capacity:prev.capacity||0,waitlist:prev.waitlist!==false,fee:prev.fee||'',notice:prev.notice||'',
+    Object.assign(aCfg,{capacity:prev.capacity||0,waitlist:prev.waitlist!==false,fee:prev.fee||'',notice:prev.notice||'',
       openAt:shiftMonthStr(prev.openAt,diff), closeAt:shiftMonthStr(prev.closeAt,diff)});
   }
   aMonth=m; aIsNew=true; aData={list:[],canceled:[],count:{total:0,confirmed:0,waiting:0}};
@@ -665,16 +705,24 @@ $('saveMonth').onclick=async ()=>{
   if(!aCfg.days.length) return msg($('aMsg'),'레슨일을 하루 이상 지정하세요.');
   if(!aCfg.openAt || !aCfg.closeAt) return msg($('aMsg'),'신청 시작·마감 일시를 입력하세요.');
   if(aCfg.openAt>=aCfg.closeAt) return msg($('aMsg'),'신청 마감이 시작보다 늦어야 해요.');
-  loading(true);
-  try{ await api('saveMonth',{pw:adminPw,config:aCfg}); const m=aCfg.month; await refreshAdminMonths(m); toast(`${mLabel(m)} 레슨이 저장·공개됐어요.`); }
+  loading(true,'저장하는 중…'); $('saveMonth').disabled=true;
+  try{
+    const m=aCfg.month, r=await api('saveMonth',{pw:adminPw,config:aCfg});
+    months=r.months; fillMonthSelect(m); showAdminMonth(r.admin);
+    toast(`${mLabel(m)} 레슨이 저장·공개됐어요.`);
+  }
   catch(e){ msg($('aMsg'), e.message); }
-  finally{ loading(false); }
+  finally{ loading(false); $('saveMonth').disabled=false; }
 };
 $('delMonth').onclick=async ()=>{
   if(!confirm(`${mLabelFull(aMonth)} 레슨을 삭제할까요?\n(구글 시트의 신청 기록은 그대로 보관돼요)`)) return;
-  loading(true);
-  try{ await api('deleteMonth',{pw:adminPw,month:aMonth}); aMonth=null; await refreshAdminMonths(); toast('삭제했어요.'); }
-  catch(e){ toast(e.message); }
+  loading(true,'삭제하는 중…');
+  try{
+    const r=await api('deleteMonth',{pw:adminPw,month:aMonth}); aMonth=null; months=r.months;
+    const v=fillMonthSelect(); if(v) await openAdminMonth(v); else $('aBody').classList.add('hidden');
+    toast('삭제했어요.');
+  }
+  catch(e){ toast(e.message); await refreshAdminMonths(aMonth); }
   finally{ loading(false); }
 };
 function aTab(t){
@@ -698,8 +746,8 @@ function renderAdminList(){
 $('aList').addEventListener('click', async e=>{
   const b=e.target.closest('button[data-id]'); if(!b) return;
   if(!confirm(`${b.dataset.n}님의 신청을 취소 처리할까요?`)) return;
-  loading(true);
-  try{ await api('adminRemove',{pw:adminPw,id:b.dataset.id}); aData=await api('adminMonth',{month:aMonth,pw:adminPw}); renderAdminList(); toast('취소 처리했어요.'); }
+  loading(true,'취소 처리 중…');
+  try{ aData=await api('adminRemove',{pw:adminPw,id:b.dataset.id}); renderAdminList(); toast('취소 처리했어요.'); }
   catch(e){ toast(e.message); }
   finally{ loading(false); }
 });
