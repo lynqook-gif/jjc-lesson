@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d2c5e">
+<title>정읍중앙클럽 레슨신청</title>
+<link rel="icon" id="favicon">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --navy:#0d2c5e; --navy2:#173e7a; --navy-t:#eef2f9; --navy-t2:#dde5f2;
+  --accent:#e2512f; --accent-t:#fdeee9; --gold:#ec8a2c;
+  --ink:#111a2b; --sub:#6b7688; --mute:#9aa3b2; --line:#e9edf3; --bg:#f4f6fa; --card:#fff;
+  --ok:#17804f; --ok-t:#e5f5ec; --wait:#b0610a; --wait-t:#fff3e2; --bad:#c62f22; --bad-t:#fdecea;
+  --r:18px; --shadow:0 1px 2px rgba(13,44,94,.04),0 6px 20px rgba(13,44,94,.06);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;letter-spacing:-.2px}
+button,input,textarea,select{font:inherit;color:inherit;letter-spacing:inherit}
+.app{max-width:520px;margin:0 auto;min-height:100vh;padding-bottom:110px}
+
+/* 상단바 */
+.topbar{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar-in{display:flex;align-items:center;gap:10px;padding:10px 18px}
+.topbar img{width:40px;height:40px;object-fit:contain}
+.brand b{display:block;font-size:16px;font-weight:800;color:var(--navy);line-height:1.2}
+.brand span{font-size:12px;color:var(--sub);font-weight:600}
+.months{display:flex;gap:6px;overflow-x:auto;padding:0 18px 10px;scrollbar-width:none}
+.months::-webkit-scrollbar{display:none}
+.mtab{flex:none;border:0;background:var(--navy-t);color:var(--navy);border-radius:999px;padding:6px 14px;font-size:13.5px;font-weight:700;cursor:pointer}
+.mtab.on{background:var(--navy);color:#fff}
+
+.demo{margin:12px 18px 0;background:var(--wait-t);color:var(--wait);font-size:12.5px;font-weight:600;padding:9px 12px;border-radius:12px}
+.sec{padding:0 18px;margin-top:14px}
+
+/* 히어로 */
+.hero{position:relative;overflow:hidden;background:linear-gradient(145deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;border-radius:22px;padding:22px 20px 20px;box-shadow:0 10px 28px rgba(13,44,94,.25)}
+.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(236,138,44,.35),rgba(236,138,44,0) 70%)}
+.hero .status{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.14)}
+.hero .status i{width:7px;height:7px;border-radius:50%;background:#9aa3b2}
+.hero .status.open i{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25)}
+.hero .status.before i{background:var(--gold)}
+.hero h2{margin:12px 0 2px;font-size:30px;font-weight:800;letter-spacing:-.8px}
+.hero .period{font-size:13px;opacity:.75}
+.seat{margin-top:18px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.seat .big{font-size:26px;font-weight:800;line-height:1}
+.seat .big small{font-size:14px;font-weight:600;opacity:.7;margin-left:3px}
+.seat .lbl{font-size:12px;opacity:.7;margin-bottom:4px}
+.seat .dday{background:#fff;color:var(--navy);font-weight:800;font-size:13px;border-radius:10px;padding:6px 10px;white-space:nowrap}
+.track{margin-top:12px;height:6px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden}
+.track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--accent));transition:width .4s}
+
+/* 카드 */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+.card-t{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 12px}
+.card-t h3{margin:0;font-size:16px;font-weight:800}
+.card-t span{font-size:12.5px;color:var(--sub);font-weight:600}
+
+/* 달력 */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);row-gap:4px;text-align:center}
+.cal .dow{font-size:11.5px;font-weight:700;color:var(--mute);padding:2px 0 6px}
+.cal .dow.su{color:#e0685a}.cal .dow.sa{color:#5a82c8}
+.day{height:42px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:500;color:var(--ink);position:relative}
+.day span{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.day.su{color:#e0685a}.day.sa{color:#5a82c8}
+.day.past{opacity:.35}
+.day.lesson span{background:var(--navy);color:#fff;font-weight:800}
+.day.today span{box-shadow:inset 0 0 0 2px var(--gold)}
+.day.today::after{content:"오늘";position:absolute;bottom:-3px;font-size:9px;font-weight:800;color:var(--gold)}
+.cal.edit .day:not(.empty){cursor:pointer}
+.cal.edit .day:not(.empty):not(.lesson) span:hover{background:var(--navy-t)}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.meta div{background:var(--bg);border-radius:12px;padding:10px 12px}
+.meta small{display:block;font-size:11.5px;color:var(--sub);font-weight:600}
+.meta b{font-size:14px;font-weight:700;word-break:keep-all}
+.meta .w2{grid-column:1/-1}
+.notice{margin-top:10px;border-left:3px solid var(--accent);background:var(--accent-t);border-radius:4px 12px 12px 4px;padding:11px 14px;font-size:14px;white-space:pre-wrap;color:#5a2517}
+
+/* 신청자 */
+.people{display:flex;flex-wrap:wrap;gap:6px}
+.pp{display:inline-flex;align-items:center;gap:6px;background:var(--navy-t);color:var(--navy);border-radius:999px;padding:5px 11px 5px 5px;font-size:13.5px;font-weight:700}
+.pp em{font-style:normal;width:22px;height:22px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--navy)}
+.pp.w{background:var(--wait-t);color:var(--wait)}
+.pp.w em{color:var(--wait)}
+.sub-h{font-size:12.5px;font-weight:700;color:var(--sub);margin:14px 0 8px}
+.none{color:var(--mute);font-size:14px;text-align:center;padding:14px 0}
+
+/* 하단 고정 버튼 */
+.cta{position:fixed;left:0;right:0;bottom:0;z-index:6;background:linear-gradient(to top,var(--bg) 70%,rgba(244,246,250,0));padding:16px 18px calc(14px + env(safe-area-inset-bottom))}
+.cta-in{max-width:484px;margin:0 auto;display:flex;gap:8px}
+.btn{border:0;border-radius:14px;padding:15px 18px;font-weight:800;font-size:16px;cursor:pointer;background:var(--navy);color:#fff;transition:transform .08s,background .15s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{background:#c6cdd8;cursor:not-allowed}
+.btn.full{width:100%}
+.btn.soft{background:var(--navy-t);color:var(--navy)}
+.btn.danger{background:var(--bad-t);color:var(--bad)}
+.btn.sm{font-size:13.5px;padding:9px 13px;border-radius:10px;font-weight:700}
+.btn.xs{font-size:12.5px;padding:5px 9px;border-radius:8px;font-weight:700}
+
+/* 바텀시트 */
+.dim{position:fixed;inset:0;background:rgba(10,20,40,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.dim.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;transform:translateY(105%);visibility:hidden;transition:transform .25s cubic-bezier(.2,.8,.2,1),visibility 0s .25s}
+.sheet.show{transform:none;visibility:visible;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.sheet-in{max-width:520px;margin:0 auto;background:#fff;border-radius:24px 24px 0 0;padding:10px 20px calc(22px + env(safe-area-inset-bottom))}
+.grab{width:40px;height:4px;border-radius:9px;background:var(--line);margin:0 auto 14px}
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:16px}
+.seg button{flex:1;border:0;background:none;padding:9px;border-radius:9px;font-weight:700;color:var(--sub);cursor:pointer}
+.seg button.on{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.sheet h4{margin:0 0 4px;font-size:19px;font-weight:800}
+.sheet p.d{margin:0 0 16px;color:var(--sub);font-size:13.5px}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:12.5px;font-weight:700;color:var(--sub);margin-bottom:5px}
+.fld input,.fld textarea,.fld select{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;font-size:16px;outline:none;transition:border-color .15s}
+.fld input:focus,.fld textarea:focus,.fld select:focus{border-color:var(--navy)}
+.fld textarea{font-size:14.5px}
+.msg{border-radius:12px;padding:11px 13px;margin:0 0 12px;font-size:14px;font-weight:600}
+.msg.ok{background:var(--ok-t);color:var(--ok)}.msg.err{background:var(--bad-t);color:var(--bad)}
+
+/* 완료 토스트 */
+.toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;font-weight:600;z-index:30;transition:.25s;max-width:calc(100% - 36px);text-align:center;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* 관리자 */
+.a-top{display:flex;justify-content:space-between;align-items:center;margin:16px 18px 0}
+.a-top h2{margin:0;font-size:20px;font-weight:800}
+.row{display:flex;gap:8px;align-items:flex-end}
+.row .fld{flex:1;margin:0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g2 .fld{margin:0 0 12px;min-width:0}
+.g1{display:grid;grid-template-columns:1fr;gap:0}
+.fld input[type=datetime-local]{min-width:0;-webkit-appearance:none;appearance:none}
+.wk{display:flex;gap:5px;margin-top:12px}
+.wk button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:7px 0;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer}
+.wk button.on{border-color:var(--navy);color:var(--navy);background:var(--navy-t)}
+.switch{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:12px;padding:11px 14px;margin-bottom:12px;font-size:14px;font-weight:600;cursor:pointer}
+.switch input{appearance:none;width:44px;height:26px;border-radius:99px;background:#cfd6e0;position:relative;cursor:pointer;transition:.2s;margin:0}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch input:checked{background:var(--navy)}
+.switch input:checked::after{left:21px}
+.hint{font-size:12.5px;color:var(--sub);margin:8px 0 0}
+.lrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.lrow:last-child{border-bottom:0}
+.lrow .no{width:26px;height:26px;border-radius:50%;background:var(--navy-t);color:var(--navy);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.lrow .no.w{background:var(--wait-t);color:var(--wait)}
+.lrow .who{flex:1;min-width:0}
+.lrow .who b{font-size:14.5px}
+.lrow .who small{display:block;color:var(--sub);font-size:12px}
+.tag{font-size:11.5px;font-weight:800;border-radius:6px;padding:2px 7px}
+.tag.ok{background:var(--ok-t);color:var(--ok)}.tag.w{background:var(--wait-t);color:var(--wait)}.tag.x{background:var(--bg);color:var(--sub)}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.kpi div{background:var(--bg);border-radius:12px;padding:10px;text-align:center}
+.kpi small{display:block;font-size:11.5px;color:var(--sub);font-weight:600}
+.kpi b{font-size:20px;font-weight:800;color:var(--navy)}
+
+footer{text-align:center;color:var(--mute);font-size:12px;padding:26px 18px 10px;line-height:1.7}
+footer button{background:none;border:0;color:var(--sub);font-size:12px;text-decoration:underline;cursor:pointer;padding:0}
+.loading{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:40;background:rgba(255,255,255,.5)}
+.loading.show{display:flex}
+.spin{width:34px;height:34px;border:3.5px solid var(--navy-t2);border-top-color:var(--navy);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="topbar-in">
+      <img src="data:image/webp;base64,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" alt="정읍중앙클럽 로고">
+      <div class="brand"><b>정읍중앙클럽</b><span>배드민턴 레슨신청</span></div>
+    </div>
+    <div class="months" id="monthTabs"></div>
+  </div>
+
+  <div id="demoNote" class="demo hidden">미리보기 모드예요. 이 브라우저에만 저장되고, 관리자 비밀번호는 1234입니다.</div>
+
+  <!-- ============ 사용자 ============ -->
+  <div id="userView">
+    <div id="noMonth" class="sec hidden"><div class="card none">아직 등록된 레슨 일정이 없어요.</div></div>
+
+    <div id="monthBody" class="hidden">
+      <div class="sec">
+        <div class="hero">
+          <div class="status" id="hStatus"><i></i><span></span></div>
+          <h2 id="hTitle"></h2>
+          <div class="period" id="hPeriod"></div>
+          <div class="seat">
+            <div><div class="lbl" id="hSeatLbl">남은 자리</div><div class="big" id="hSeat"></div></div>
+            <div class="dday" id="hDday"></div>
+          </div>
+          <div class="track" id="hTrack"><i></i></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="card">
+          <div class="card-t"><h3>레슨 일정</h3><span id="lessonCount"></span></div>
+          <div class="cal" id="userCal"></div>
+          <div class="meta" id="meta"></div>
+          <div class="notice hidden" id="notice"></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="card">
+          <div class="card-t"><h3>신청 현황</h3><span id="peopleCount"></span></div>
+          <div id="people"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 관리자 ============ -->
+  <div id="adminView" class="hidden">
+    <div class="a-top">
+      <h2>관리자</h2>
+      <div style="display:flex;gap:6px"><button class="btn soft sm" id="toUser">나가기</button></div>
+    </div>
+
+    <div class="sec">
+      <div class="card">
+        <div class="row">
+          <div class="fld"><label>관리할 달</label><select id="aMonthSel"></select></div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div class="fld"><label>새 달 만들기</label><input type="month" id="newMonth"></div>
+          <button class="btn sm" id="newMonthBtn" style="height:47px">만들기</button>
+        </div>
+        <p class="hint">새 달은 최근 달의 요일·시간·장소·정원·신청기간을 불러와 채워둬요.</p>
+      </div>
+    </div>
+
+    <div id="aBody" class="hidden">
+      <div class="sec">
+        <div class="seg" id="aSeg" style="margin:0">
+          <button class="on" data-t="set">레슨 설정</button>
+          <button data-t="list">신청자 명단</button>
+        </div>
+      </div>
+
+      <div id="tabSet">
+        <div class="sec">
+          <div class="card">
+            <div class="card-t"><h3 id="aCalTitle"></h3><span id="dayCount"></span></div>
+            <div class="cal edit" id="adminCal"></div>
+            <div class="wk" id="wkBtns"></div>
+            <p class="hint">날짜를 눌러 레슨일을 지정/해제하고, 요일 버튼으로 매주 반복을 한 번에 넣을 수 있어요.</p>
+          </div>
+        </div>
+        <div class="sec">
+          <div class="card">
+            <div class="fld"><label>레슨 시간</label><input id="aTime" placeholder="예: 19:00 ~ 21:00"></div>
+            <div class="fld"><label>장소</label><input id="aPlace" placeholder="예: 정읍국민체육센터"></div>
+            <div class="g2">
+              <div class="fld"><label>정원 (0 = 제한 없음)</label><input id="aCap" type="number" min="0" inputmode="numeric"></div>
+              <div class="fld"><label>레슨비</label><input id="aFee" placeholder="예: 월 5만원"></div>
+            </div>
+            <label class="switch">정원 초과 시 대기 접수<input type="checkbox" id="aWait"></label>
+            <div class="g1">
+              <div class="fld"><label>신청 시작</label><input type="datetime-local" id="aOpen"></div>
+              <div class="fld"><label>신청 마감</label><input type="datetime-local" id="aClose"></div>
+            </div>
+            <div class="fld" style="margin:0"><label>공지</label><textarea id="aNotice" rows="3" placeholder="예: 라켓·실내화 지참"></textarea></div>
+          </div>
+        </div>
+        <div class="sec">
+          <div id="aMsg"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn danger" id="delMonth">삭제</button>
+            <button class="btn full" id="saveMonth">저장하고 공개</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tabList" class="hidden">
+        <div class="sec">
+          <div class="card">
+            <div class="kpi" id="aKpi"></div>
+            <div style="display:flex;gap:6px;justify-content:flex-end;margin-bottom:4px">
+              <button class="btn soft xs" id="reloadList">새로고침</button>
+              <button class="btn xs" id="csvBtn">엑셀(CSV) 받기</button>
+            </div>
+            <div id="aList"></div>
+          </div>
+        </div>
+        <div class="sec" id="canceledSec">
+          <div class="card">
+            <div class="card-t"><h3>취소 내역</h3></div>
+            <div id="aCanceled"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <button id="adminOpen">관리자</button><br>
+    제작자: 정주고등학교 박지은 / 문의: ican6363@naver.com
+  </footer>
+</div>
+
+<!-- 하단 버튼 -->
+<div class="cta hidden" id="cta"><div class="cta-in"><button class="btn full" id="ctaBtn">레슨 신청하기</button></div></div>
+
+<!-- 바텀시트: 신청/취소 -->
+<div class="dim" id="dim"></div>
+<div class="sheet" id="sheet"><div class="sheet-in">
+  <div class="grab"></div>
+  <div class="seg" id="sheetSeg"><button class="on" data-t="apply">신청</button><button data-t="cancel">신청 취소</button></div>
+  <div id="sApply">
+    <h4 id="sTitle"></h4>
+    <p class="d" id="sDesc"></p>
+    <div class="fld"><label>이름</label><input id="fName" maxlength="20" autocomplete="name" placeholder="홍길동"></div>
+    <div class="fld"><label>연락처 (선택)</label><input id="fPhone" maxlength="20" inputmode="tel" placeholder="010-0000-0000"></div>
+    <div class="fld"><label>취소 비밀번호 (숫자 4자리)</label><input id="fPin" maxlength="4" inputmode="numeric" type="password" placeholder="신청 취소할 때 필요해요"></div>
+    <div id="sMsg"></div>
+    <button class="btn full" id="applyBtn">신청하기</button>
+  </div>
+  <div id="sCancel" class="hidden">
+    <h4>신청 취소</h4>
+    <p class="d">신청할 때 입력한 이름과 비밀번호를 넣어주세요.</p>
+    <div class="fld"><label>이름</label><input id="cName" maxlength="20"></div>
+    <div class="fld"><label>취소 비밀번호</label><input id="cPin" maxlength="4" inputmode="numeric" type="password"></div>
+    <div id="cMsg"></div>
+    <button class="btn full danger" id="cancelBtn">신청 취소하기</button>
+  </div>
+</div></div>
+
+<!-- 바텀시트: 관리자 로그인 -->
+<div class="sheet" id="loginSheet"><div class="sheet-in">
+  <div class="grab"></div>
+  <h4>관리자 로그인</h4>
+  <p class="d">레슨 일정 등록과 명단 관리는 관리자만 할 수 있어요.</p>
+  <div class="fld"><label>비밀번호</label><input type="password" id="loginPw"></div>
+  <div id="loginMsg"></div>
+  <button class="btn full" id="loginBtn">로그인</button>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<div class="loading" id="loading"><div class="spin"></div></div>
+
+<script>
+/* ================================================================
+   ★ 설정 ★  Apps Script 웹 앱 URL을 따옴표 안에 붙여넣으세요.
+   비워두면 이 브라우저에만 저장되는 미리보기 모드로 동작합니다.
+   ================================================================ */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0T6Sevjq4_w0O3eVVGL0Bo6rA1wMVDR0STcFXrEroO074HZvOPNniDjCNxvN6VshqbA/exec';
+
+/* ---------------- 공통 ---------------- */
+const $ = id => document.getElementById(id);
+const DOW = ['일','월','화','수','목','금','토'];
+const pad = n => String(n).padStart(2,'0');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mLabel = m => `${Number(m.split('-')[1])}월`;
+const mLabelFull = m => { const [y,mm]=m.split('-'); return `${y}년 ${Number(mm)}월`; };
+function kst(s){ return new Date(String(s).slice(0,16)+':00+09:00'); }
+function k9(d){ return new Date(d.getTime()+9*3600e3); }
+function fmtDT(s){ if(!s) return '-'; const k=k9(kst(s)); return `${k.getUTCMonth()+1}.${k.getUTCDate()}(${DOW[k.getUTCDay()]}) ${pad(k.getUTCHours())}:${pad(k.getUTCMinutes())}`; }
+function todayKST(){ const k=k9(new Date()); return `${k.getUTCFullYear()}-${pad(k.getUTCMonth()+1)}-${pad(k.getUTCDate())}`; }
+function periodState(cfg){ const now=new Date();
+  if(cfg.openAt && now<kst(cfg.openAt)) return 'before';
+  if(cfg.closeAt && now>kst(cfg.closeAt)) return 'after';
+  return 'open'; }
+function daysIn(m){ const [y,mm]=m.split('-').map(Number); return new Date(y,mm,0).getDate(); }
+function firstDow(m){ const [y,mm]=m.split('-').map(Number); return new Date(y,mm-1,1).getDay(); }
+function dowOf(ds){ return new Date(ds+'T00:00:00').getDay(); }
+function shiftMonthStr(dt, add){
+  if(!dt) return ''; const [d,t]=dt.split('T'); let [y,m,day]=d.split('-').map(Number);
+  m+=add; while(m>12){m-=12;y++} while(m<1){m+=12;y--}
+  const last=new Date(y,m,0).getDate(); if(day>last) day=last;
+  return `${y}-${pad(m)}-${pad(day)}T${t||'09:00'}`; }
+function monthDiff(a,b){ const [y1,m1]=a.split('-').map(Number),[y2,m2]=b.split('-').map(Number); return (y2-y1)*12+(m2-m1); }
+function dday(target){ const ms=kst(target)-new Date(); const d=Math.floor(ms/86400000);
+  if(d>=1) return `D-${d}`; const h=Math.floor(ms/3600000); return h>=1?`${h}시간 남음`:`${Math.max(1,Math.floor(ms/60000))}분 남음`; }
+function msg(el, text, ok){ el.innerHTML = text ? `<div class="msg ${ok?'ok':'err'}">${esc(text)}</div>` : ''; }
+function loading(on){ $('loading').classList.toggle('show', on); }
+let toastT; function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2600); }
+
+/* ---------------- 미리보기용 저장소 ---------------- */
+const mem={};
+const store={
+  get(){ try{ return JSON.parse(localStorage.getItem('jjc_lesson_demo')||'null') || mem.v || {configs:{},apps:[]}; }catch(e){ return mem.v || {configs:{},apps:[]}; } },
+  set(v){ mem.v=v; try{ localStorage.setItem('jjc_lesson_demo', JSON.stringify(v)); }catch(e){} }
+};
+function nowStr(){ const k=k9(new Date()); return `${k.getUTCFullYear()}-${pad(k.getUTCMonth()+1)}-${pad(k.getUTCDate())} ${pad(k.getUTCHours())}:${pad(k.getUTCMinutes())}:${pad(k.getUTCSeconds())}`; }
+function mask(n){ n=String(n); if(n.length<=1) return n; if(n.length===2) return n[0]+'*'; return n[0]+'*'.repeat(n.length-2)+n[n.length-1]; }
+function mock(action, p){
+  const db=store.get();
+  const needAdmin=()=>{ if(p.pw!=='1234') throw new Error('관리자 비밀번호가 틀렸어요.'); };
+  const getMonth=(month, admin)=>{
+    const cfg=db.configs[month]; if(!cfg) throw new Error('해당 월의 레슨 정보가 없어요.');
+    const all=db.apps.filter(a=>a.month===month), active=all.filter(a=>!a.canceledAt), cap=Number(cfg.capacity)||0;
+    const list=active.map((a,i)=>{ const status=(cap===0||i<cap)?'확정':'대기';
+      return admin?{id:a.id,no:i+1,name:a.name,phone:a.phone,at:a.at,status}:{no:i+1,name:mask(a.name),at:a.at,status}; });
+    const r={config:cfg,list,now:nowStr(),count:{total:active.length,confirmed:list.filter(x=>x.status==='확정').length,waiting:list.filter(x=>x.status==='대기').length}};
+    if(admin) r.canceled=all.filter(a=>a.canceledAt).map(a=>({name:a.name,phone:a.phone,at:a.at,canceledAt:a.canceledAt,reason:a.reason}));
+    return r; };
+  switch(action){
+    case 'months': return Object.values(db.configs).sort((a,b)=>a.month<b.month?-1:1);
+    case 'month': return getMonth(p.month,false);
+    case 'apply': {
+      const name=String(p.name||'').trim(), pin=String(p.pin||'').trim();
+      if(!name) throw new Error('이름을 입력하세요.');
+      if(!/^\d{4}$/.test(pin)) throw new Error('취소 비밀번호는 숫자 4자리예요.');
+      const cfg=db.configs[p.month]; if(!cfg) throw new Error('해당 월의 레슨 정보가 없어요.');
+      const st=periodState(cfg); if(st==='before') throw new Error('아직 신청 기간이 아니에요.'); if(st==='after') throw new Error('신청이 마감됐어요.');
+      const active=db.apps.filter(a=>a.month===p.month&&!a.canceledAt);
+      if(active.some(a=>a.name===name&&a.pin===pin)) throw new Error('이미 신청되어 있어요.');
+      const cap=Number(cfg.capacity)||0, full=cap>0&&active.length>=cap;
+      if(full&&!cfg.waitlist) throw new Error('정원이 마감됐어요.');
+      db.apps.push({id:Math.random().toString(36).slice(2,12),month:p.month,name,phone:String(p.phone||'').trim(),pin,at:nowStr(),canceledAt:'',reason:''});
+      store.set(db); return {status:full?'대기':'확정',no:active.length+1}; }
+    case 'cancel': {
+      const cfg=db.configs[p.month]; if(!cfg) throw new Error('해당 월의 레슨 정보가 없어요.');
+      if(periodState(cfg)!=='open') throw new Error('신청 기간에만 취소할 수 있어요. 관리자에게 문의하세요.');
+      const a=db.apps.find(x=>x.month===p.month&&!x.canceledAt&&x.name===String(p.name||'').trim()&&x.pin===String(p.pin||'').trim());
+      if(!a) throw new Error('일치하는 신청 내역이 없어요. 이름과 비밀번호를 확인하세요.');
+      a.canceledAt=nowStr(); a.reason='본인취소'; store.set(db); return true; }
+    case 'login': needAdmin(); return true;
+    case 'adminMonth': needAdmin(); return getMonth(p.month,true);
+    case 'saveMonth': needAdmin(); db.configs[p.config.month]=p.config; store.set(db); return true;
+    case 'deleteMonth': needAdmin(); delete db.configs[p.month]; store.set(db); return true;
+    case 'adminRemove': { needAdmin(); const a=db.apps.find(x=>x.id===p.id&&!x.canceledAt); if(!a) throw new Error('신청 내역을 찾을 수 없어요.');
+      a.canceledAt=nowStr(); a.reason='관리자취소'; store.set(db); return true; }
+  }
+  throw new Error('알 수 없는 요청이에요.');
+}
+
+/* ---------------- 서버 통신 ---------------- */
+async function api(action, params={}){
+  if(!SCRIPT_URL){ await new Promise(r=>setTimeout(r,120)); return mock(action, JSON.parse(JSON.stringify(params))); }
+  const res = (action==='months'||action==='month')
+    ? await fetch(SCRIPT_URL+'?'+new URLSearchParams({action,...params}))
+    : await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...params})});
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error||'오류가 발생했어요.');
+  return j.data;
+}
+
+/* ---------------- 달력 ---------------- */
+function renderCal(el, month, days, editable){
+  const set=new Set(days||[]), today=todayKST();
+  let h=DOW.map((d,i)=>`<div class="dow ${i===0?'su':i===6?'sa':''}">${d}</div>`).join('');
+  const f=firstDow(month), n=daysIn(month);
+  for(let i=0;i<f;i++) h+='<div class="day empty"></div>';
+  for(let d=1; d<=n; d++){
+    const ds=`${month}-${pad(d)}`, w=(f+d-1)%7;
+    const c=['day', w===0?'su':'', w===6?'sa':'', set.has(ds)?'lesson':'', ds===today?'today':'', (!editable && ds<today && !set.has(ds))?'past':''].join(' ');
+    h+=`<div class="${c}" data-d="${ds}"><span>${d}</span></div>`;
+  }
+  el.innerHTML=h;
+}
+
+/* ================= 사용자 ================= */
+let months=[], curMonth=null, curData=null;
+
+async function loadMonths(select){
+  months = await api('months');
+  if(!months.length){ $('monthTabs').innerHTML=''; $('noMonth').classList.remove('hidden'); $('monthBody').classList.add('hidden'); $('cta').classList.add('hidden'); return; }
+  $('noMonth').classList.add('hidden');
+  if(!select || !months.some(m=>m.month===select)) select=pickDefault();
+  $('monthTabs').innerHTML = months.map(m=>`<button class="mtab" data-m="${m.month}">${months.length>1&&months[0].month.slice(0,4)!==months[months.length-1].month.slice(0,4)?mLabelFull(m.month):mLabel(m.month)}</button>`).join('');
+  await loadMonth(select);
+}
+function pickDefault(){
+  const o=months.filter(m=>periodState(m)==='open'); if(o.length) return o[o.length-1].month;
+  const b=months.filter(m=>periodState(m)==='before'); if(b.length) return b[0].month;
+  return months[months.length-1].month;
+}
+async function loadMonth(m){
+  curMonth=m;
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.toggle('on', b.dataset.m===m));
+  loading(true);
+  try{ curData=await api('month',{month:m}); render(); }
+  catch(e){ toast(e.message); }
+  finally{ loading(false); }
+}
+$('monthTabs').addEventListener('click', e=>{ const b=e.target.closest('.mtab'); if(b) loadMonth(b.dataset.m); });
+
+function render(){
+  const cfg=curData.config, st=periodState(cfg), c=curData.count, cap=Number(cfg.capacity)||0;
+  const full=cap>0 && c.total>=cap;
+  $('monthBody').classList.remove('hidden');
+
+  // 히어로
+  const s=$('hStatus'); s.className='status '+st;
+  s.querySelector('span').textContent = st==='open' ? (full ? (cfg.waitlist?'정원 마감 · 대기 접수 중':'정원 마감') : '신청 받는 중') : st==='before' ? '신청 예정' : '신청 마감';
+  $('hTitle').textContent = `${mLabel(cfg.month)} 레슨`;
+  $('hPeriod').textContent = `신청 ${fmtDT(cfg.openAt)} ~ ${fmtDT(cfg.closeAt)}`;
+  if(cap){ $('hSeatLbl').textContent='남은 자리'; $('hSeat').innerHTML=`${Math.max(0,cap-c.confirmed)}<small>/ ${cap}명</small>`; }
+  else { $('hSeatLbl').textContent='신청 인원'; $('hSeat').innerHTML=`${c.total}<small>명</small>`; }
+  $('hTrack').classList.toggle('hidden', !cap);
+  $('hTrack').firstElementChild.style.width = cap ? Math.min(100,c.confirmed/cap*100)+'%' : '0';
+  const dd=$('hDday');
+  if(st==='open'){ dd.textContent='마감 '+dday(cfg.closeAt); dd.classList.remove('hidden'); }
+  else if(st==='before'){ dd.textContent='오픈 '+dday(cfg.openAt); dd.classList.remove('hidden'); }
+  else dd.classList.add('hidden');
+
+  // 일정
+  const days=(cfg.days||[]).slice().sort();
+  $('lessonCount').textContent=`총 ${days.length}회`;
+  renderCal($('userCal'), cfg.month, days, false);
+  const meta=[['시간',cfg.time],['장소',cfg.place]];
+  if(cfg.fee) meta.push(['레슨비',cfg.fee]);
+  meta.push(['정원', cap?`${cap}명${cfg.waitlist?' (초과 시 대기)':''}`:'제한 없음']);
+  $('meta').innerHTML = meta.map((m,i)=>`<div class="${meta.length%2 && i===meta.length-1?'w2':''}"><small>${m[0]}</small><b>${esc(m[1])||'-'}</b></div>`).join('');
+  $('notice').classList.toggle('hidden', !cfg.notice); $('notice').textContent=cfg.notice||'';
+
+  // 신청 현황
+  const conf=curData.list.filter(x=>x.status==='확정'), wait=curData.list.filter(x=>x.status==='대기');
+  $('peopleCount').textContent = c.total ? `${c.total}명` : '';
+  let h='';
+  if(!c.total) h='<div class="none">아직 신청자가 없어요. 첫 번째로 신청해 보세요!</div>';
+  else {
+    h+=`<div class="people">${conf.map(x=>`<span class="pp"><em>${x.no}</em>${esc(x.name)}</span>`).join('')}</div>`;
+    if(wait.length) h+=`<div class="sub-h">대기 ${wait.length}명</div><div class="people">${wait.map(x=>`<span class="pp w"><em>${x.no-cap}</em>${esc(x.name)}</span>`).join('')}</div>`;
+  }
+  $('people').innerHTML=h;
+
+  // 하단 버튼
+  const btn=$('ctaBtn'); $('cta').classList.remove('hidden');
+  if(st==='before'){ btn.disabled=true; btn.textContent=`${fmtDT(cfg.openAt)}부터 신청 가능`; }
+  else if(st==='after'){ btn.disabled=true; btn.textContent='신청이 마감됐어요'; }
+  else if(full && !cfg.waitlist){ btn.disabled=false; btn.textContent='정원 마감 · 신청 취소하기'; btn.dataset.mode='cancel'; return; }
+  else { btn.disabled=false; btn.textContent= full ? '대기 신청하기' : `${mLabel(cfg.month)} 레슨 신청하기`; }
+  btn.dataset.mode='apply';
+}
+
+/* 바텀시트 */
+function openSheet(id){ $('dim').classList.add('show'); $(id).classList.add('show'); }
+function closeSheets(){ $('dim').classList.remove('show'); document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('show')); }
+$('dim').onclick=closeSheets;
+function sheetTab(t){
+  document.querySelectorAll('#sheetSeg button').forEach(b=>b.classList.toggle('on', b.dataset.t===t));
+  $('sApply').classList.toggle('hidden', t!=='apply'); $('sCancel').classList.toggle('hidden', t!=='cancel');
+  msg($('sMsg'),''); msg($('cMsg'),'');
+}
+$('sheetSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) sheetTab(b.dataset.t); });
+$('ctaBtn').onclick=()=>{
+  const cfg=curData.config, cap=Number(cfg.capacity)||0, full=cap>0&&curData.count.total>=cap;
+  const canApply = !(full && !cfg.waitlist);
+  $('sheetSeg').querySelector('[data-t=apply]').classList.toggle('hidden', !canApply);
+  $('sTitle').textContent = full ? `${mLabel(cfg.month)} 레슨 대기 신청` : `${mLabel(cfg.month)} 레슨 신청`;
+  $('sDesc').textContent = `${(cfg.days||[]).length}회 · ${cfg.time||''}${cfg.place?' · '+cfg.place:''}`;
+  $('applyBtn').textContent = full ? '대기 신청하기' : '신청하기';
+  sheetTab($('ctaBtn').dataset.mode==='cancel' ? 'cancel' : 'apply');
+  openSheet('sheet'); setTimeout(()=>($('ctaBtn').dataset.mode==='cancel'?$('cName'):$('fName')).focus(),250);
+};
+$('applyBtn').onclick=async ()=>{
+  const name=$('fName').value.trim(), phone=$('fPhone').value.trim(), pin=$('fPin').value.trim();
+  if(!name) return msg($('sMsg'),'이름을 입력하세요.');
+  if(!/^\d{4}$/.test(pin)) return msg($('sMsg'),'취소 비밀번호는 숫자 4자리로 입력하세요.');
+  loading(true); $('applyBtn').disabled=true;
+  try{
+    const r=await api('apply',{month:curMonth,name,phone,pin});
+    ['fName','fPhone','fPin'].forEach(i=>$(i).value='');
+    closeSheets(); curData=await api('month',{month:curMonth}); render();
+    toast(r.status==='확정' ? `${name}님, 신청이 완료됐어요!` : `${name}님, 대기로 접수됐어요. 취소자가 생기면 순서대로 확정돼요.`);
+  }catch(e){ msg($('sMsg'), e.message); }
+  finally{ loading(false); $('applyBtn').disabled=false; }
+};
+$('cancelBtn').onclick=async ()=>{
+  const name=$('cName').value.trim(), pin=$('cPin').value.trim();
+  if(!name || !/^\d{4}$/.test(pin)) return msg($('cMsg'),'이름과 비밀번호 4자리를 입력하세요.');
+  if(!confirm(`${name}님의 ${mLabel(curMonth)} 레슨 신청을 취소할까요?`)) return;
+  loading(true);
+  try{
+    await api('cancel',{month:curMonth,name,pin});
+    ['cName','cPin'].forEach(i=>$(i).value='');
+    closeSheets(); curData=await api('month',{month:curMonth}); render(); toast('신청이 취소됐어요.');
+  }catch(e){ msg($('cMsg'), e.message); }
+  finally{ loading(false); }
+};
+
+/* ================= 관리자 ================= */
+let adminPw='', aMonth=null, aCfg=null, aData=null, aIsNew=false;
+
+$('adminOpen').onclick=()=>{ if(adminPw) return enterAdmin(); msg($('loginMsg'),''); $('loginPw').value=''; openSheet('loginSheet'); setTimeout(()=>$('loginPw').focus(),250); };
+$('loginPw').addEventListener('keydown', e=>{ if(e.key==='Enter') $('loginBtn').click(); });
+$('loginBtn').onclick=async ()=>{
+  const pw=$('loginPw').value; loading(true);
+  try{ await api('login',{pw}); adminPw=pw; closeSheets(); enterAdmin(); }
+  catch(e){ msg($('loginMsg'), e.message); }
+  finally{ loading(false); }
+};
+$('toUser').onclick=()=>{ $('adminView').classList.add('hidden'); $('userView').classList.remove('hidden'); $('monthTabs').classList.remove('hidden'); window.scrollTo(0,0); loadMonths(curMonth); };
+
+async function enterAdmin(){
+  $('userView').classList.add('hidden'); $('cta').classList.add('hidden'); $('monthTabs').classList.add('hidden');
+  $('adminView').classList.remove('hidden'); window.scrollTo(0,0);
+  const k=k9(new Date()); let y=k.getUTCFullYear(), m=k.getUTCMonth()+2; if(m>12){m=1;y++}
+  $('newMonth').value=`${y}-${pad(m)}`;
+  await refreshAdminMonths(aMonth||curMonth);
+}
+async function refreshAdminMonths(select){
+  loading(true);
+  try{
+    months=await api('months');
+    const sel=$('aMonthSel');
+    sel.innerHTML = months.length ? months.slice().reverse().map(m=>`<option value="${m.month}">${mLabelFull(m.month)}</option>`).join('') : '<option value="">등록된 달이 없어요</option>';
+    if(select && months.some(m=>m.month===select)) sel.value=select;
+    if(sel.value) await openAdminMonth(sel.value); else $('aBody').classList.add('hidden');
+  }catch(e){ toast(e.message); }
+  finally{ loading(false); }
+}
+$('aMonthSel').onchange=()=>{ if($('aMonthSel').value) openAdminMonth($('aMonthSel').value); };
+
+async function openAdminMonth(m){
+  aMonth=m; aIsNew=false; loading(true);
+  try{ aData=await api('adminMonth',{month:m,pw:adminPw}); aCfg=JSON.parse(JSON.stringify(aData.config)); fillEditor(); renderAdminList(); $('aBody').classList.remove('hidden'); msg($('aMsg'),''); }
+  catch(e){ toast(e.message); }
+  finally{ loading(false); }
+}
+$('newMonthBtn').onclick=()=>{
+  const m=$('newMonth').value; if(!m) return;
+  if(months.some(x=>x.month===m)){ $('aMonthSel').value=m; return openAdminMonth(m); }
+  const prev=months.filter(x=>x.month<m).slice(-1)[0] || months.slice(-1)[0];
+  aCfg={month:m,days:[],time:'',place:'',capacity:0,waitlist:true,fee:'',openAt:'',closeAt:'',notice:''};
+  if(prev){
+    const diff=monthDiff(prev.month,m), wds=[...new Set((prev.days||[]).map(dowOf))];
+    for(let d=1; d<=daysIn(m); d++){ const ds=`${m}-${pad(d)}`; if(wds.includes(dowOf(ds))) aCfg.days.push(ds); }
+    Object.assign(aCfg,{time:prev.time||'',place:prev.place||'',capacity:prev.capacity||0,waitlist:prev.waitlist!==false,fee:prev.fee||'',notice:prev.notice||'',
+      openAt:shiftMonthStr(prev.openAt,diff), closeAt:shiftMonthStr(prev.closeAt,diff)});
+  }
+  aMonth=m; aIsNew=true; aData={list:[],canceled:[],count:{total:0,confirmed:0,waiting:0}};
+  fillEditor(); renderAdminList(); $('aBody').classList.remove('hidden'); aTab('set');
+  msg($('aMsg'), prev ? `${mLabelFull(prev.month)} 설정을 불러왔어요. 공휴일 등을 확인하고 저장하세요.` : '레슨일을 지정하고 저장하세요.', true);
+};
+function fillEditor(){
+  $('aCalTitle').textContent = mLabelFull(aCfg.month) + (aIsNew?' · 새로 만드는 중':'');
+  $('aTime').value=aCfg.time||''; $('aPlace').value=aCfg.place||''; $('aCap').value=aCfg.capacity||0;
+  $('aFee').value=aCfg.fee||''; $('aWait').checked=aCfg.waitlist!==false;
+  $('aOpen').value=aCfg.openAt||''; $('aClose').value=aCfg.closeAt||''; $('aNotice').value=aCfg.notice||'';
+  $('delMonth').classList.toggle('hidden', aIsNew);
+  drawAdminCal();
+}
+function drawAdminCal(){
+  renderCal($('adminCal'), aCfg.month, aCfg.days, true);
+  $('dayCount').textContent=`레슨 ${aCfg.days.length}회`;
+  $('wkBtns').innerHTML = DOW.map((d,w)=>{
+    const all=[]; for(let i=1;i<=daysIn(aCfg.month);i++){ const ds=`${aCfg.month}-${pad(i)}`; if(dowOf(ds)===w) all.push(ds); }
+    const on=all.every(x=>aCfg.days.includes(x));
+    return `<button data-w="${w}" class="${on?'on':''}">${d}</button>`; }).join('');
+}
+$('adminCal').addEventListener('click', e=>{
+  const d=e.target.closest('.day'); if(!d || d.classList.contains('empty')) return;
+  const ds=d.dataset.d, i=aCfg.days.indexOf(ds);
+  if(i>=0) aCfg.days.splice(i,1); else aCfg.days.push(ds);
+  aCfg.days.sort(); drawAdminCal();
+});
+$('wkBtns').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const w=Number(b.dataset.w), list=[];
+  for(let d=1; d<=daysIn(aCfg.month); d++){ const ds=`${aCfg.month}-${pad(d)}`; if(dowOf(ds)===w) list.push(ds); }
+  const allOn=list.every(x=>aCfg.days.includes(x));
+  aCfg.days = allOn ? aCfg.days.filter(x=>!list.includes(x)) : [...new Set([...aCfg.days,...list])];
+  aCfg.days.sort(); drawAdminCal();
+});
+$('saveMonth').onclick=async ()=>{
+  Object.assign(aCfg,{time:$('aTime').value.trim(),place:$('aPlace').value.trim(),capacity:Math.max(0,parseInt($('aCap').value)||0),
+    fee:$('aFee').value.trim(),waitlist:$('aWait').checked,openAt:$('aOpen').value,closeAt:$('aClose').value,notice:$('aNotice').value.trim()});
+  if(!aCfg.days.length) return msg($('aMsg'),'레슨일을 하루 이상 지정하세요.');
+  if(!aCfg.openAt || !aCfg.closeAt) return msg($('aMsg'),'신청 시작·마감 일시를 입력하세요.');
+  if(aCfg.openAt>=aCfg.closeAt) return msg($('aMsg'),'신청 마감이 시작보다 늦어야 해요.');
+  loading(true);
+  try{ await api('saveMonth',{pw:adminPw,config:aCfg}); const m=aCfg.month; await refreshAdminMonths(m); toast(`${mLabel(m)} 레슨이 저장·공개됐어요.`); }
+  catch(e){ msg($('aMsg'), e.message); }
+  finally{ loading(false); }
+};
+$('delMonth').onclick=async ()=>{
+  if(!confirm(`${mLabelFull(aMonth)} 레슨을 삭제할까요?\n(구글 시트의 신청 기록은 그대로 보관돼요)`)) return;
+  loading(true);
+  try{ await api('deleteMonth',{pw:adminPw,month:aMonth}); aMonth=null; await refreshAdminMonths(); toast('삭제했어요.'); }
+  catch(e){ toast(e.message); }
+  finally{ loading(false); }
+};
+function aTab(t){
+  document.querySelectorAll('#aSeg button').forEach(b=>b.classList.toggle('on', b.dataset.t===t));
+  $('tabSet').classList.toggle('hidden', t!=='set'); $('tabList').classList.toggle('hidden', t!=='list');
+}
+$('aSeg').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) aTab(b.dataset.t); });
+
+function renderAdminList(){
+  const c=aData.count, cap=Number(aCfg.capacity)||0;
+  $('aKpi').innerHTML=`<div><small>확정</small><b>${c.confirmed}${cap?`<span style="font-size:13px;color:var(--sub)">/${cap}</span>`:''}</b></div><div><small>대기</small><b>${c.waiting}</b></div><div><small>취소</small><b>${(aData.canceled||[]).length}</b></div>`;
+  $('aList').innerHTML = aData.list.length ? aData.list.map(x=>`
+    <div class="lrow"><div class="no ${x.status==='대기'?'w':''}">${x.no}</div>
+      <div class="who"><b>${esc(x.name)}</b> <span class="tag ${x.status==='확정'?'ok':'w'}">${x.status}</span><small>${esc(x.phone)||'연락처 없음'} · ${esc(x.at)}</small></div>
+      <button class="btn danger xs" data-id="${esc(x.id)}" data-n="${esc(x.name)}">취소</button></div>`).join('')
+    : '<div class="none">신청자가 없어요.</div>';
+  const C=aData.canceled||[];
+  $('canceledSec').classList.toggle('hidden', !C.length);
+  $('aCanceled').innerHTML = C.map(x=>`<div class="lrow"><div class="who"><b>${esc(x.name)}</b> <span class="tag x">${esc(x.reason)}</span><small>${esc(x.phone)||'연락처 없음'} · 취소 ${esc(x.canceledAt)}</small></div></div>`).join('');
+}
+$('aList').addEventListener('click', async e=>{
+  const b=e.target.closest('button[data-id]'); if(!b) return;
+  if(!confirm(`${b.dataset.n}님의 신청을 취소 처리할까요?`)) return;
+  loading(true);
+  try{ await api('adminRemove',{pw:adminPw,id:b.dataset.id}); aData=await api('adminMonth',{month:aMonth,pw:adminPw}); renderAdminList(); toast('취소 처리했어요.'); }
+  catch(e){ toast(e.message); }
+  finally{ loading(false); }
+});
+$('reloadList').onclick=async ()=>{ if(aIsNew) return; loading(true);
+  try{ aData=await api('adminMonth',{month:aMonth,pw:adminPw}); renderAdminList(); } catch(e){ toast(e.message); } finally{ loading(false); } };
+$('csvBtn').onclick=()=>{
+  const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const rows=[['순번','이름','연락처','신청일시','상태']].concat(aData.list.map(x=>[x.no,x.name,x.phone,x.at,x.status]));
+  const csv='﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`정읍중앙클럽_레슨신청명단_${aMonth}.csv`; document.body.appendChild(a); a.click(); a.remove();
+};
+
+/* ---------------- 시작 ---------------- */
+$('favicon').href = document.querySelector('.topbar img').src;
+if(!SCRIPT_URL) $('demoNote').classList.remove('hidden');
+loading(true);
+loadMonths().catch(e=>toast('불러오기 실패: '+e.message)).finally(()=>loading(false));
+</script>
+</body>
+</html>
